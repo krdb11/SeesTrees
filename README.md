@@ -1,5 +1,7 @@
 # SeesTrees
 
+![SeesTrees Logo](./images/holyTree.png)
+
 SeesTrees is a Visual Studio Code extension that provides a visually enhanced, color-coded, and emoji-rich tree view of your project directory structure. Instantly understand your project's hierarchy at a glance, right from the terminal or command palette.
 
 ## Features
@@ -9,7 +11,7 @@ SeesTrees is a Visual Studio Code extension that provides a visually enhanced, c
 - Ignores clutter (e.g., .git, node_modules, build artifacts)
 - Easy to use from the command palette or terminal
 
-![SeesTrees Example](./images/seesExample.png)
+![SeesTrees Example](./images/seesTreesExample.png)
 
 ## Requirements
 - Visual Studio Code 1.70.0 or higher

@@ -96,7 +96,9 @@ def should_ignore(path):
         '.git', '__pycache__', 'node_modules',
         '.vscode', '.idea', '*.pyc', '.DS_Store',
         'venv', 'env', 'build', 'dist', '*.egg-info',
-        '.next', 'bin', '.ipynb_checkpoints', 'obj'
+        '.next', 'bin', '.ipynb_checkpoints', 'obj',
+        'git', 'vscode', '.vscode', 'ms-vscode', 'github',
+        'services', 'platform', 'resources', '.vscode-test'
     }
     
     name = os.path.basename(path)
