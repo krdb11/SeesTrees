@@ -2,13 +2,13 @@
   "name": "sees-trees",
   "displayName": "SeesTrees",
   "description": "Aesthetically visualize your project with colorful repository trees and emojis that provide assistance in enhancing any \"ground-up\" onboarding",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "538iNdustries",
   "engines": {
     "vscode": "^1.100.0"
   },
   "categories": [
-    "Other"
+    "Linters"
   ],
   "repository": {
     "type": "git",
