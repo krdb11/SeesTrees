@@ -1,57 +1,84 @@
 {
-  "name": "sees-trees",
-  "displayName": "SeesTrees",
-  "description": "Aesthetically visualize your project with colorful repository trees and emojis that provide assistance in enhancing any \"ground-up\" onboarding",
-  "version": "0.0.7",
-  "publisher": "538iNdustries",
-  "engines": {
-    "vscode": "^1.100.0"
+  "bugs": {
+    "url": "https://github.com/krdb11/sees-Trees/issues"
   },
   "categories": [
-    "Linters"
+    "Other"
   ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/krdb11/sees-Trees"
-  },
   "activationEvents": [
+    "onStartupFinished"
   ],
-  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "SeesTrees.helloWorld",
-        "title": "SeesTrees"
+        "command": "seestrees.helloWorld",
+        "title": "SeesTrees: Show Welcome Message"
+      },
+      {
+        "command": "seestrees.refresh",
+        "title": "SeesTrees: Refresh Tree",
+        "icon": "$(refresh)"
       }
     ],
     "views": {
       "explorer": [
         {
+          "icon": "images/holyTree.png",
           "id": "seesTreesView",
-          "name": "SeesTrees",
-          "icon": "images/holyTree.png"
+          "name": "SeesTrees"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "seestrees.refresh",
+          "when": "view == seesTreesView",
+          "group": "navigation"
         }
       ]
     }
   },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
-  },
+  "description": "Aesthetically visualize your project with colorful repository trees and emojis that provide assistance in enhancing any \"ground-up\" onboarding",
   "devDependencies": {
-    "@types/vscode": "^1.100.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/vscode": "^1.100.0",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
-    "eslint": "^9.25.1",
-    "typescript": "^5.8.3",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.25.1",
+    "typescript": "^5.8.3"
   },
-  "icon": "images/holyTree.png"
+  "displayName": "SeesTrees",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "files": [
+    "out",
+    "images",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "homepage": "https://github.com/krdb11/sees-Trees#readme",
+  "icon": "images/holyTree.png",
+  "license": "MIT",
+  "main": "./out/extension.js",
+  "name": "sees-trees",
+  "publisher": "538iNdustries",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krdb11/sees-Trees"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "eslint src",
+    "pretest": "npm run compile && npm run lint",
+    "test": "vscode-test",
+    "vscode:prepublish": "npm run compile",
+    "watch": "tsc -watch -p ./"
+  },
+  "version": "0.0.8"
 }
