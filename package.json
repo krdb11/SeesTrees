@@ -18,6 +18,14 @@
         "command": "seestrees.refresh",
         "title": "SeesTrees: Refresh Tree",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "seestrees.showTreeInTerminal",
+        "title": "SeesTrees: Display Colorful Directory Tree"
+      },
+      {
+        "command": "seestrees.configureIgnoredPatterns",
+        "title": "SeesTrees: Configure Ignored Files/Folders"
       }
     ],
     "views": {
@@ -37,6 +45,21 @@
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "SeesTrees",
+      "properties": {
+        "seestrees.ignoredPatterns": {
+          "type": "array",
+          "default": [
+            ".git", "__pycache__", "node_modules",
+            ".vscode", ".idea", ".DS_Store",
+            "venv", "env", "build", "dist", 
+            ".pyc", ".egg-info"
+          ],
+          "description": "Files and folders to ignore when displaying the tree structure"
+        }
+      }
     }
   },
   "description": "Aesthetically visualize your project with colorful repository trees and emojis that provide assistance in enhancing any \"ground-up\" onboarding",
@@ -80,5 +103,5 @@
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "0.0.8"
+  "version": "0.1.0"
 }

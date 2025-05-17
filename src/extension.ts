@@ -13,7 +13,6 @@ class FileTreeItem extends vscode.TreeItem {
     this.collapsibleState = collapsibleState;
     this.contextValue = fs.statSync(resourceUri.fsPath).isDirectory() ? 'folder' : 'file';
     
-    // Enhanced icon handling with file type detection
     this.updateIconAndLabel();
   }
   
@@ -24,11 +23,9 @@ class FileTreeItem extends vscode.TreeItem {
     const fileName = path.basename(filePath);
     
     if (isDirectory) {
-      // Folder icons with emojis
       this.iconPath = new vscode.ThemeIcon('folder');
       this.label = `📂 ${this.label}`;
       
-      // Special folder handling
       if (this.label.includes('src') || this.label.includes('source')) {
         this.label = `📦 ${this.label}`;
       } else if (this.label.includes('test')) {
@@ -43,7 +40,6 @@ class FileTreeItem extends vscode.TreeItem {
         this.label = `🏗️ ${this.label}`;
       }
     } else {
-      // Special files handling first
       const specialFiles: Record<string, [vscode.ThemeIcon, string]> = {
         'package.json': [new vscode.ThemeIcon('package'), '📦'],
         'package-lock.json': [new vscode.ThemeIcon('lock'), '🔒'],
@@ -60,7 +56,6 @@ class FileTreeItem extends vscode.TreeItem {
         return;
       }
       
-      // File type detection with appropriate icons and emojis
       interface FileTypeConfig {
         icon: string;
         emoji: string;
@@ -119,6 +114,17 @@ class SeesTreesProvider implements vscode.TreeDataProvider<FileTreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<FileTreeItem | undefined | void> = new vscode.EventEmitter<FileTreeItem | undefined | void>();
   readonly onDidChangeTreeData: vscode.Event<FileTreeItem | undefined | void> = this._onDidChangeTreeData.event;
 
+  private readonly config = vscode.workspace.getConfiguration('seestrees');
+  
+  constructor() {
+    // Listen for configuration changes
+    vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration('seestrees.ignoredPatterns')) {
+        this.refresh();
+      }
+    });
+  }
+
   getTreeItem(element: FileTreeItem): vscode.TreeItem {
     return element;
   }
@@ -135,7 +141,8 @@ class SeesTreesProvider implements vscode.TreeDataProvider<FileTreeItem> {
   shouldIgnore(filePath: string): boolean {
     const name = path.basename(filePath);
     
-    const ignorePatterns = [
+    // Get user-configured ignored patterns
+    const ignorePatterns = this.config.get<string[]>('ignoredPatterns') || [
       '.git', '__pycache__', 'node_modules',
       '.vscode', '.idea', '.DS_Store',
       'venv', 'env', 'build', 'dist', 
@@ -191,32 +198,305 @@ class SeesTreesProvider implements vscode.TreeDataProvider<FileTreeItem> {
   }
 }
 
-// This method is called when your extension is activated
+/**
+ * Terminal tree visualization functions
+ */
+class TerminalTreeVisualizer {
+  private static terminal: vscode.Terminal | undefined;
+  
+  private static colors = {
+    folder: '\x1b[1;34m',        // Bold Blue
+    config: '\x1b[1;33m',        // Bold Yellow
+    python: '\x1b[1;32m',        // Bold Green
+    docs: '\x1b[1;36m',          // Bold Cyan
+    json: '\x1b[1;35m',          // Bold Magenta
+    lock: '\x1b[1;31m',          // Bold Red
+    image: '\x1b[38;5;213m',     // Pink
+    npm: '\x1b[38;5;208m',       // Orange
+    html: '\x1b[38;5;202m',      // Deep Orange
+    css: '\x1b[38;5;39m',        // Light Blue
+    js: '\x1b[38;5;220m',        // Gold
+    ts: '\x1b[38;5;45m',         // Turquoise
+    yaml: '\x1b[38;5;177m',      // Purple
+    sql: '\x1b[38;5;147m',       // Light Purple
+    csv: '\x1b[38;5;107m',       // Olive
+    reset: '\x1b[0m',            // Reset color
+  };
+
+  private static getFileColorAndEmoji(filePath: string): [string, string] {
+    const fileName = path.basename(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    
+    // Default
+    let color = this.colors.reset;
+    let emoji = '📄';
+    
+    const specialFiles: Record<string, [string, string]> = {
+      'package.json': [this.colors.npm, '📦'],
+      'package-lock.json': [this.colors.lock, '🔒'],
+      'pyproject.toml': [this.colors.python, '🐍'],
+      'poetry.lock': [this.colors.lock, '🔒'],
+      '.gitignore': [this.colors.config, '👁️'],
+      '.env': [this.colors.config, '⚙️'],
+    };
+    
+    if (specialFiles[fileName]) {
+      return specialFiles[fileName];
+    }
+    
+    const fileTypes: Record<string, [string, string]> = {
+      // Programmatic
+      '.py': [this.colors.python, '🐍'],
+      '.js': [this.colors.js, '📜'],
+      '.jsx': [this.colors.js, '⚛️'],
+      '.ts': [this.colors.ts, '💠'],
+      '.tsx': [this.colors.ts, '⚛️'],
+      
+      // Web
+      '.html': [this.colors.html, '🌐'],
+      '.css': [this.colors.css, '🎨'],
+      
+      // Data
+      '.json': [this.colors.json, '📋'],
+      '.yaml': [this.colors.yaml, '📋'],
+      '.yml': [this.colors.yaml, '📋'],
+      '.sql': [this.colors.sql, '💾'],
+      '.csv': [this.colors.csv, '📊'],
+      
+      // Configuration
+      '.toml': [this.colors.config, '⚙️'],
+      '.env': [this.colors.config, '⚙️'],
+      '.lock': [this.colors.lock, '🔒'],
+      
+      // Documentation
+      '.md': [this.colors.docs, '📝'],
+      '.txt': [this.colors.docs, '📝'],
+      '.rst': [this.colors.docs, '📝'],
+      
+      // Images
+      '.png': [this.colors.image, '🖼️'],
+      '.jpg': [this.colors.image, '🖼️'],
+      '.jpeg': [this.colors.image, '🖼️'],
+      '.gif': [this.colors.image, '🖼️'],
+      '.svg': [this.colors.image, '🖼️'],
+    };
+    
+    if (fileTypes[ext]) {
+      return fileTypes[ext];
+    }
+    
+    return [color, emoji];
+  }
+  
+  private static shouldIgnore(filePath: string): boolean {
+    const name = path.basename(filePath);
+    
+    // Get user-configured ignored patterns
+    const config = vscode.workspace.getConfiguration('seestrees');
+    const ignorePatterns = config.get<string[]>('ignoredPatterns') || [
+      '.git', '__pycache__', 'node_modules',
+      '.vscode', '.idea', '.DS_Store',
+      'venv', 'env', 'build', 'dist', 
+      '.pyc', '.egg-info'
+    ];
+    
+    return ignorePatterns.some(pattern => {
+      if (pattern.startsWith('.') && pattern.length > 1) {
+        // Handle file extensions like '.pyc'
+        return name.endsWith(pattern);
+      } else {
+        // Handle directory/file names
+        return name === pattern;
+      }
+    });
+  }
+  
+  private static getTerminal(): vscode.Terminal {
+    if (!this.terminal || this.terminal.exitStatus !== undefined) {
+      this.terminal = vscode.window.createTerminal('SeesTrees');
+    }
+    return this.terminal;
+  }
+  
+  private static printDirectoryTree(
+    directory: string, 
+    terminal: vscode.Terminal,
+    prefix = "",
+    isRoot = true
+  ): void {
+    try {
+      if (isRoot) {
+        terminal.sendText(`\n🌳 ${this.colors.folder}Project Structure${this.colors.reset}`);
+        terminal.sendText("==================");
+        
+        const rootFiles = fs.readdirSync(directory)
+          .filter(file => 
+            fs.statSync(path.join(directory, file)).isFile() && 
+            !this.shouldIgnore(path.join(directory, file))
+          )
+          .sort();
+        
+        for (const file of rootFiles) {
+          const [color, emoji] = this.getFileColorAndEmoji(file);
+          terminal.sendText(`├── ${emoji} ${color}${file}${this.colors.reset}`);
+        }
+        terminal.sendText("│");
+      }
+      
+      const items = fs.readdirSync(directory)
+        .filter(item => 
+          !this.shouldIgnore(path.join(directory, item)) && 
+          (!isRoot || fs.statSync(path.join(directory, item)).isDirectory())
+        )
+        .sort((a, b) => {
+          const aIsDir = fs.statSync(path.join(directory, a)).isDirectory();
+          const bIsDir = fs.statSync(path.join(directory, b)).isDirectory();
+          
+          if (aIsDir && !bIsDir) { return -1; }
+          if (!aIsDir && bIsDir) { return 1; }
+          return a.localeCompare(b);
+        });
+      
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const isLast = (i === items.length - 1);
+        const connector = isLast ? "└── " : "├── ";
+        const nextPrefix = isLast ? "    " : "│   ";
+        
+        const itemPath = path.join(directory, item);
+        
+        let color = this.colors.reset;
+        let emoji = '📄';
+        
+        if (fs.statSync(itemPath).isDirectory()) {
+          color = this.colors.folder;
+          emoji = "📂";
+
+          if (item.includes('src') || item.includes('source')) {
+            emoji = "📦";
+          } else if (item.includes('test')) {
+            emoji = "🧪";
+          } else if (item.includes('doc')) {
+            emoji = "📚";
+          } else if (item.includes('images') || item.includes('img')) {
+            emoji = "🖼️";
+          } else if (item.includes('data')) {
+            emoji = "💾";
+          } else if (item.includes('build') || item.includes('dist')) {
+            emoji = "🏗️";
+          }
+        } else {
+          [color, emoji] = this.getFileColorAndEmoji(itemPath);
+        }
+        
+        terminal.sendText(`${prefix}${connector}${emoji} ${color}${item}${this.colors.reset}`);
+        
+        if (fs.statSync(itemPath).isDirectory()) {
+          this.printDirectoryTree(itemPath, terminal, prefix + nextPrefix, false);
+        }
+      }
+    } catch (error) {
+      terminal.sendText(`${prefix} ⚠️ [Error: ${error instanceof Error ? error.message : String(error)}]`);
+    }
+  }
+  
+  public static showTreeInTerminal(workspaceRoot: string | undefined): void {
+    if (!workspaceRoot) {
+      vscode.window.showErrorMessage('SeesTrees: No workspace folder is open');
+      return;
+    }
+    
+    const terminal = this.getTerminal();
+    terminal.show();
+    terminal.sendText('clear'); // Clear the terminal first
+    
+    try {
+      this.printDirectoryTree(workspaceRoot, terminal);
+    } catch (error) {
+      terminal.sendText(`⚠️ Error displaying tree: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+}
+
 export function activate(context: vscode.ExtensionContext) {
-	// Output extension activation info
 	console.log('SeesTrees extension is now active.');
 
-  // Register the tree data provider for the view
   const treeDataProvider = new SeesTreesProvider();
   vscode.window.registerTreeDataProvider('seesTreesView', treeDataProvider);
 
-	// Register the welcome/hello world command
 	const helloDisposable = vscode.commands.registerCommand('seestrees.helloWorld', () => {
 		vscode.window.showInformationMessage('SeesTrees: Project tree visualization is ready!');
 	});
 
-	// Register the refresh command
 	const refreshDisposable = vscode.commands.registerCommand('seestrees.refresh', () => {
 		treeDataProvider.refresh();
 		vscode.window.showInformationMessage('SeesTrees: Tree view refreshed');
 	});
+  
+  const terminalTreeDisposable = vscode.commands.registerCommand('seestrees.showTreeInTerminal', () => {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    TerminalTreeVisualizer.showTreeInTerminal(workspaceRoot);
+    vscode.window.showInformationMessage('SeesTrees: Directory tree displayed in terminal');
+  });
+  
+  const configureIgnoredPatternsDisposable = vscode.commands.registerCommand('seestrees.configureIgnoredPatterns', async () => {
+    const config = vscode.workspace.getConfiguration('seestrees');
+    const currentPatterns = config.get<string[]>('ignoredPatterns') || [];
+    
+    const options = ['Add new pattern', 'Remove existing pattern', 'Restore defaults', 'Cancel'];
+    const selection = await vscode.window.showQuickPick(options, {
+      placeHolder: 'What would you like to do with ignored patterns?'
+    });
+    
+    if (selection === 'Add new pattern') {
+      const newPattern = await vscode.window.showInputBox({
+        placeHolder: 'Enter folder/file name or extension (e.g., "node_modules" or ".pyc")',
+        prompt: 'Pattern to ignore in the tree view'
+      });
+      
+      if (newPattern) {
+        if (!currentPatterns.includes(newPattern)) {
+          await config.update('ignoredPatterns', [...currentPatterns, newPattern], vscode.ConfigurationTarget.Global);
+          vscode.window.showInformationMessage(`Added "${newPattern}" to ignored patterns`);
+          treeDataProvider.refresh();
+        } else {
+          vscode.window.showInformationMessage(`"${newPattern}" is already in ignored patterns`);
+        }
+      }
+    } else if (selection === 'Remove existing pattern') {
+      if (currentPatterns.length === 0) {
+        vscode.window.showInformationMessage('No patterns to remove');
+        return;
+      }
+      
+      const patternToRemove = await vscode.window.showQuickPick(currentPatterns, {
+        placeHolder: 'Select pattern to remove'
+      });
+      
+      if (patternToRemove) {
+        await config.update(
+          'ignoredPatterns', 
+          currentPatterns.filter(p => p !== patternToRemove), 
+          vscode.ConfigurationTarget.Global
+        );
+        vscode.window.showInformationMessage(`Removed "${patternToRemove}" from ignored patterns`);
+        treeDataProvider.refresh();
+      }
+    } else if (selection === 'Restore defaults') {
+      await config.update('ignoredPatterns', undefined, vscode.ConfigurationTarget.Global);
+      vscode.window.showInformationMessage('Restored default ignored patterns');
+      treeDataProvider.refresh();
+    }
+  });
 
-	// Add both commands to subscriptions
-	context.subscriptions.push(helloDisposable, refreshDisposable);
+	context.subscriptions.push(
+    helloDisposable, 
+    refreshDisposable, 
+    terminalTreeDisposable,
+    configureIgnoredPatternsDisposable
+  );
 	
-	// Activate the welcome message on first load
 	vscode.commands.executeCommand('seestrees.helloWorld');
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}
