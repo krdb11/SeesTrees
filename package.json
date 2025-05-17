@@ -2,7 +2,7 @@
   "name": "see-trees",
   "displayName": "see-trees",
   "description": "Aesthetically visualize your project with colorful repository trees and emojis that provide assistance in enhancing any \"ground-up\" onboarding",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "538iNdustries",
   "engines": {
     "vscode": "^1.100.0"
@@ -42,5 +42,6 @@
     "typescript": "^5.8.3",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2"
-  }
+  },
+  "icon": "images/ft8indu.png"
 }
