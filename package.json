@@ -1,6 +1,6 @@
 {
-  "name": "see-trees",
-  "displayName": "see-trees",
+  "name": "sees-trees",
+  "displayName": "SeesTrees",
   "description": "Aesthetically visualize your project with colorful repository trees and emojis that provide assistance in enhancing any \"ground-up\" onboarding",
   "version": "0.0.6",
   "publisher": "538iNdustries",
@@ -14,15 +14,25 @@
     "type": "git",
     "url": "https://github.com/krdb11/sees-Trees"
   },
-  "activationEvents": [],
+  "activationEvents": [
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "SeesTrees.helloWorld",
-        "title": "Hello World"
+        "title": "SeesTrees"
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "seesTreesView",
+          "name": "SeesTrees",
+          "icon": "images/holyTree.png"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
