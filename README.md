@@ -9,6 +9,10 @@ SeesTrees is a Visual Studio Code extension that provides a visually enhanced, c
 - Ignores clutter (e.g., .git, node_modules, build artifacts)
 - Terminal command for displaying a colorful directory tree with connector lines
 - Easy to use from the command palette or terminal
+- **NEW:** Power Grid visualization showing where interpreters have access paths
+  - Visual indicators for Python, Node.js, Docker, Ruby, Go, Java, and PHP environments
+  - Radiating glow effect highlighting directories with environment configurations
+  - File highlighting showing which files can be executed by which interpreters
 
 ![SeesTrees Example](./images/seesTreesExample.png)
 
@@ -17,7 +21,15 @@ SeesTrees is a Visual Studio Code extension that provides a visually enhanced, c
 - No additional dependencies
 
 ## Extension Settings
-This extension does not add any custom settings. All configuration is automatic and based on common project conventions.
+The extension provides the following settings:
+
+### Ignored Patterns
+- `seestrees.ignoredPatterns`: Array of file/folder patterns to ignore when displaying the tree structure.
+
+### Power Grid Settings
+- `seestrees.powerGrid.enabled`: Enable/disable the power grid visualization (default: `true`).
+- `seestrees.powerGrid.glowIntensity`: Control the intensity of the power grid glow effect (`low`, `medium`, `high`).
+- `seestrees.powerGrid.environmentTypes`: Array of environment types to detect and visualize (`python`, `node`, `docker`, `ruby`, `go`, `java`, `php`).
 
 ## Known Issues
 - Large projects may take longer to render

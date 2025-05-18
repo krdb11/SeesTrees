@@ -26,6 +26,11 @@
       {
         "command": "seestrees.configureIgnoredPatterns",
         "title": "SeesTrees: Configure Ignored Files/Folders"
+      },
+      {
+        "command": "seestrees.togglePowerGrid",
+        "title": "SeesTrees: Toggle Power Grid Visualization",
+        "icon": "$(pulse)"
       }
     ],
     "views": {
@@ -43,6 +48,11 @@
           "command": "seestrees.refresh",
           "when": "view == seesTreesView",
           "group": "navigation"
+        },
+        {
+          "command": "seestrees.togglePowerGrid",
+          "when": "view == seesTreesView",
+          "group": "navigation"
         }
       ]
     },
@@ -58,6 +68,24 @@
             ".pyc", ".egg-info"
           ],
           "description": "Files and folders to ignore when displaying the tree structure"
+        },
+        "seestrees.powerGrid.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the power grid visualization that shows where interpreters can access files"
+        },
+        "seestrees.powerGrid.glowIntensity": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "Control the visual intensity of the power grid glow effect"
+        },
+        "seestrees.powerGrid.environmentTypes": {
+          "type": "array",
+          "default": [
+            "python", "node", "docker", "ruby", "go", "java", "php"
+          ],
+          "description": "Environmental types to detect and visualize in the power grid"
         }
       }
     }
@@ -103,5 +131,5 @@
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "0.1.0"
+  "version": "0.1.2"
 }
